@@ -573,8 +573,34 @@
     return dl;
   }
 
+  // 一般網站（GitHub Pages、自架站、本機檔案）用瀏覽器原生下載
+  function nativeSave(filename, data){
+    try {
+      var blob = (data instanceof Blob) ? data : new Blob([data]);
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){
+        try { document.body.removeChild(a); URL.revokeObjectURL(url); } catch(_){}
+      }, 2000);
+      return true;
+    } catch(e){ return false; }
+  }
+
   // 'ok' | 'err' | 'nocap'
   async function save(filename, data){
+    // 在 claude.ai 的沙箱裡，<a download> 會被擋掉，必須走平台的存檔能力
+    var inSandbox = !!(window.claude && typeof window.claude.use === 'function');
+
+    if (!inSandbox){
+      diag = 'claude.use=無 → 使用瀏覽器原生下載';
+      return nativeSave(filename, data) ? 'ok' : 'nocap';
+    }
+
     await ensureDl();
     if (!dl) return 'nocap';
     try {

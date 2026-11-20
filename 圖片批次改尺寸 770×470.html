@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>圖片批次改尺寸 770×470</title>
+<style>
+  :root{
+    --bg:#f5f5f2;
+    --panel:#ffffff;
+    --line:#e4e2dc;
+    --line-strong:#d2cfc7;
+    --ink:#1c1c1a;
+    --muted:#76736b;
+    --accent:#0f766e;
+    --accent-dark:#0b574f;
+    --accent-soft:#e6f2f0;
+    --warn:#b45309;
+    --danger:#b3261e;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+    font-size:15px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px}
+
+  header{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px;margin-bottom:22px}
+  .badge{
+    display:inline-block;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:4px 12px;font-weight:600;
+  }
+  h1{font-size:27px;line-height:1.25;margin:8px 0 2px;font-weight:700;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:14px;margin:0;max-width:660px}
+  .size-chip{
+    margin-left:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:10px 16px;text-align:right;box-shadow:0 1px 2px rgba(0,0,0,.03)
+  }
+  .size-chip .num{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .size-chip .lab{font-size:11px;color:var(--muted);letter-spacing:.08em}
+
+  .drop{
+    position:relative;background:var(--panel);border:2px dashed var(--line-strong);border-radius:var(--radius);
+    padding:34px 24px;text-align:center;transition:.15s;cursor:pointer;
+  }
+  .drop:hover{border-color:var(--accent);background:#fdfdfc}
+  .drop.over{border-color:var(--accent);background:var(--accent-soft)}
+  .drop h2{margin:0 0 6px;font-size:17px;font-weight:600}
+  .drop p{margin:0;color:var(--muted);font-size:13.5px}
+  .drop .ico{font-size:26px;line-height:1;margin-bottom:10px;opacity:.7}
+  input[type=file]{display:none}
+
+  .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 0}
+  .bar .count{font-size:13.5px;color:var(--muted);margin-right:auto}
+  .bar .count b{color:var(--ink);font-variant-numeric:tabular-nums}
+  button{
+    font:inherit;font-size:14px;border-radius:10px;border:1px solid var(--line-strong);
+    background:var(--panel);color:var(--ink);padding:9px 15px;cursor:pointer;transition:.13s;font-weight:500;
+  }
+  button:hover{border-color:var(--ink)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button:disabled:hover{border-color:var(--line-strong)}
+  .primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;padding:10px 20px}
+  .primary:hover{background:var(--accent-dark);border-color:var(--accent-dark)}
+  .ghost{background:transparent;border-color:transparent;color:var(--muted)}
+  .ghost:hover{color:var(--danger);border-color:transparent;background:#fbeceb}
+
+  details.settings{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius)}
+  details.settings>summary{
+    cursor:pointer;padding:12px 16px;font-size:14px;font-weight:600;list-style:none;display:flex;align-items:center;gap:8px
+  }
+  details.settings>summary::-webkit-details-marker{display:none}
+  details.settings>summary::before{content:"▸";color:var(--muted);transition:.15s;display:inline-block}
+  details.settings[open]>summary::before{transform:rotate(90deg)}
+  .settings-body{padding:4px 16px 18px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:20px 28px}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field>label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+  .field .row{display:flex;align-items:center;gap:6px}
+  input[type=number],input[type=text],select{
+    font:inherit;font-size:14px;padding:7px 9px;border:1px solid var(--line-strong);border-radius:8px;background:#fff;color:var(--ink)
+  }
+  input[type=number]{width:86px;font-variant-numeric:tabular-nums}
+  input[type=text]{width:140px}
+  input[type=color]{width:38px;height:34px;padding:2px;border:1px solid var(--line-strong);border-radius:8px;background:#fff;cursor:pointer}
+  .mini{padding:7px 11px;font-size:13px}
+  .check{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:400;color:var(--ink);cursor:pointer}
+  .hint{font-size:12px;color:var(--muted)}
+  input[type=range]{width:130px;accent-color:var(--accent)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:16px;margin-top:22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .thumb{position:relative;background:#edebe6}
+  .thumb canvas{display:block;width:100%;height:auto}
+  .thumb .acts{position:absolute;inset:auto 8px 8px 8px;display:flex;gap:6px;opacity:0;transition:.14s}
+  .card:hover .thumb .acts{opacity:1}
+  @media (hover:none){.thumb .acts{opacity:1}}
+  .thumb .acts button{
+    flex:1;padding:7px 0;font-size:13px;background:rgba(255,255,255,.95);border-color:transparent;
+    box-shadow:0 1px 6px rgba(0,0,0,.18);font-weight:600;color:var(--danger)
+  }
+  .meta{padding:10px 12px 12px}
+  .meta .name{font-size:13px;font-weight:600;word-break:break-all;line-height:1.4}
+  .meta .dim{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}
+  .flag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:999px;margin-top:6px;font-weight:600}
+  .flag.up{background:#fdf2e3;color:var(--warn)}
+  .flag.err{background:#fbeceb;color:var(--danger)}
+  .card.bad .thumb{min-height:120px;display:flex;align-items:center;justify-content:center;color:var(--danger);font-size:13px;padding:20px;text-align:center}
+
+  .modal{position:fixed;inset:0;background:rgba(28,28,26,.62);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
+  .modal.on{display:flex}
+  .sheet{background:var(--panel);border-radius:16px;max-width:860px;width:100%;max-height:92vh;overflow:auto;padding:20px}
+  .sheet h3{margin:0 0 4px;font-size:17px}
+  .sheet .foot{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin-top:18px}
+  .fbrow{margin-bottom:20px}
+  .fbrow img{display:block;width:100%;max-width:770px;border:1px solid var(--line);border-radius:8px}
+  .fbcap{font-size:12.5px;color:var(--muted);margin-top:6px;word-break:break-all}
+
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(14px);
+    background:var(--ink);color:#fff;padding:11px 20px;border-radius:999px;font-size:14px;
+    opacity:0;pointer-events:none;transition:.2s;z-index:60;max-width:92vw;text-align:center
+  }
+  .toast.on{opacity:1;transform:translateX(-50%)}
+  .empty{text-align:center;color:var(--muted);font-size:14px;padding:40px 0}
+  footer{margin-top:34px;color:var(--muted);font-size:12.5px;text-align:center;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <span class="badge">聯成電腦</span>
+      <h1>圖片批次改尺寸工具</h1>
+      <p class="sub">丟進來的圖片會<b>完整保留、不裁切任何內容</b>，自動等比縮放置中、補上背景色，統一輸出成固定尺寸，一次打包下載。圖片不會上傳，全部在你的瀏覽器處理。</p>
+    </div>
+    <div class="size-chip">
+      <div class="num" id="chipSize">770 × 470</div>
+      <div class="lab">輸出尺寸 (PX)</div>
+    </div>
+  </header>
+
+  <div class="drop" id="drop">
+    <div class="ico">⬓</div>
+    <h2>把圖片拖進來，或點這裡選檔案</h2>
+    <p>可一次選多張 · 也可以直接 Ctrl + V 貼上 · 支援 JPG / PNG / WEBP / GIF</p>
+    <input type="file" id="file" accept="image/*" multiple>
+  </div>
+
+  <div class="bar">
+    <div class="count" id="count">尚未加入圖片</div>
+    <button class="ghost" id="btnClear" disabled>清空</button>
+    <button class="primary" id="btnDl" disabled>下載全部</button>
+  </div>
+
+  <details class="settings">
+    <summary>進階設定</summary>
+    <div class="settings-body">
+      <div class="field">
+        <label>輸出尺寸</label>
+        <div class="row">
+          <input type="number" id="outW" value="770" min="16" max="8000">
+          <span class="hint">×</span>
+          <input type="number" id="outH" value="470" min="16" max="8000">
+          <button class="mini" id="btnPreset">770×470</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>背景色</label>
+        <div class="row">
+          <input type="color" id="bg" value="#ffffff">
+          <button class="mini" data-bg="#ffffff">白</button>
+          <button class="mini" data-bg="#f5f5f2">米</button>
+          <button class="mini" data-bg="#1c1c1a">黑</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>小圖處理</label>
+        <div class="row">
+          <label class="check"><input type="checkbox" id="upscale"> 放大填滿版面（會變模糊）</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>輸出格式</label>
+        <div class="row">
+          <select id="fmt">
+            <option value="image/jpeg">JPG</option>
+            <option value="image/png">PNG</option>
+            <option value="image/webp">WEBP</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>銳利度 <span id="shLab">45</span></label>
+        <div class="row"><input type="range" id="sharpen" min="0" max="100" value="45"></div>
+      </div>
+      <div class="field">
+        <label>品質 <span id="qLab">95</span></label>
+        <div class="row"><input type="range" id="q" min="50" max="100" value="95"></div>
+      </div>
+      <div class="field">
+        <label>檔名後綴</label>
+        <div class="row"><input type="text" id="suffix" value="_770x470"></div>
+      </div>
+    </div>
+  </details>
+
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty">加入圖片後會顯示成品預覽</div>
+
+  <footer>
+    所有處理都在本機瀏覽器完成，圖片不會傳到任何伺服器。<br>
+    下載時瀏覽器會先詢問你是否存檔，按「允許 / 下載」即可。
+  </footer>
+</div>
+
+<!-- 備援下載：直接右鍵另存 -->
+<div class="modal" id="fallback">
+  <div class="sheet">
+    <h3>這個畫面不支援自動存檔</h3>
+    <p class="hint" style="margin:4px 0 16px">
+      下面是已經處理好的成品（已是 <span id="fbSize">770×470</span>）。<br>
+      請在圖片上按<b>滑鼠右鍵 →「將圖片另存新檔」</b>存下來，檔名可參考圖片下方的建議名稱。<br>
+      如果是在對話旁邊的小視窗看到這頁，改用右上角的分享連結、在瀏覽器分頁單獨開啟本頁，通常就能直接按下載。
+    </p>
+    <div id="fbList"></div>
+    <div class="foot">
+      <span id="fbDiag" style="margin-right:auto;font-size:11.5px;color:var(--muted)"></span>
+      <button class="primary" id="fbClose">關閉</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ================= state ================= */
+  var S = { W:770, H:470, bg:'#ffffff', upscale:false, fmt:'image/jpeg', q:0.95, sharpen:0.45, suffix:'_770x470' };
+  var items = [];
+  var seq = 0;
+  var dl = null;      // downloads capability
+  var diag = '';      // 診斷訊息
+  var busy = false;
+
+  var $ = function(id){ return document.getElementById(id); };
+  var clamp = function(v,a,b){ return v<a?a:(v>b?b:v); };
+
+  var tTimer = null;
+  function toast(msg, ms){
+    var t = $('toast'); t.textContent = msg; t.classList.add('on');
+    clearTimeout(tTimer);
+    tTimer = setTimeout(function(){ t.classList.remove('on'); }, ms||2600);
+  }
+
+  /* ================= 高品質縮圖 ================= */
+  function hqDraw(ctx,img,sw,sh,dx,dy,dw,dh){
+    if (sw <= dw*2 && sh <= dh*2){ ctx.drawImage(img,0,0,sw,sh,dx,dy,dw,dh); return; }
+    var tw = Math.max(1,Math.round(sw)), th = Math.max(1,Math.round(sh));
+    var cv = document.createElement('canvas'); cv.width=tw; cv.height=th;
+    var c = cv.getContext('2d'); c.imageSmoothingEnabled=true; c.imageSmoothingQuality='high';
+    c.drawImage(img,0,0,sw,sh,0,0,tw,th);
+    while (tw > dw*2 && th > dh*2){
+      var nw = Math.max(Math.round(dw), Math.round(tw/2));
+      var nh = Math.max(Math.round(dh), Math.round(th/2));
+      var cv2 = document.createElement('canvas'); cv2.width=nw; cv2.height=nh;
+      var c2 = cv2.getContext('2d'); c2.imageSmoothingEnabled=true; c2.imageSmoothingQuality='high';
+      c2.drawImage(cv,0,0,tw,th,0,0,nw,nh);
+      cv=cv2; tw=nw; th=nh;
+    }
+    ctx.drawImage(cv,0,0,tw,th,dx,dy,dw,dh);
+  }
+
+  /* ================= 銳利化（Unsharp Mask） =================
+     縮圖一定會變軟，這裡用「原圖 − 模糊版」的差值把邊緣補回來。
+     不會增加像素，但同樣 770×470 看起來會清楚很多。            */
+  function hBlur(src, dst, W, H, r){
+    var win = r*2+1;
+    for (var y=0;y<H;y++){
+      var row = y*W*4;
+      for (var c=0;c<3;c++){
+        var sum = 0, k, x;
+        for (k=-r;k<=r;k++){ x = k<0?0:(k>W-1?W-1:k); sum += src[row+x*4+c]; }
+        for (x=0;x<W;x++){
+          dst[row+x*4+c] = sum/win;
+          var xo = x-r; xo = xo<0?0:xo;
+          var xi = x+r+1; xi = xi>W-1?W-1:xi;
+          sum += src[row+xi*4+c] - src[row+xo*4+c];
+        }
+      }
+      for (var a=0;a<W;a++) dst[row+a*4+3] = 255;
+    }
+  }
+  function vBlur(src, dst, W, H, r){
+    var win = r*2+1;
+    for (var x=0;x<W;x++){
+      for (var c=0;c<3;c++){
+        var sum = 0, k, y;
+        for (k=-r;k<=r;k++){ y = k<0?0:(k>H-1?H-1:k); sum += src[y*W*4+x*4+c]; }
+        for (y=0;y<H;y++){
+          dst[y*W*4+x*4+c] = sum/win;
+          var yo = y-r; yo = yo<0?0:yo;
+          var yi = y+r+1; yi = yi>H-1?H-1:yi;
+          sum += src[yi*W*4+x*4+c] - src[yo*W*4+x*4+c];
+        }
+      }
+      for (var b=0;b<H;b++) dst[b*W*4+x*4+3] = 255;
+    }
+  }
+  // 只對「圖片本身」的範圍做，避免在圖與留白的交界產生光暈
+  function unsharp(ctx, ox, oy, W, H, amount){
+    if (amount <= 0 || W < 8 || H < 8) return;
+    var img, d;
+    try { img = ctx.getImageData(ox,oy,W,H); } catch(_){ return; }
+    d = img.data;
+    var t1 = new Uint8ClampedArray(d.length);
+    var blur = new Uint8ClampedArray(d.length);
+    hBlur(d, t1, W, H, 1);
+    vBlur(t1, blur, W, H, 1);
+    var th = 2;
+    for (var i=0;i<d.length;i+=4){
+      for (var c=0;c<3;c++){
+        var o = d[i+c], diff = o - blur[i+c];
+        if (diff > th || diff < -th) d[i+c] = o + amount * diff;
+      }
+    }
+    ctx.putImageData(img, ox, oy);
+  }
+
+  /* ================= 繪製：完整留白（等比縮放置中） ================= */
+  function drawItem(ctx, it, W, H){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = S.bg; ctx.fillRect(0,0,W,H);
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    var s = Math.min(W/it.iw, H/it.ih);
+    if (!S.upscale){
+      // 不放大：以 1:1 原尺寸為上限（W/S.W 是預覽縮放比，成品時等於 1）
+      s = Math.min(s, W / S.W);
+    }
+    var dw = Math.max(1, Math.round(it.iw * s));
+    var dh = Math.max(1, Math.round(it.ih * s));
+    var dx = Math.round((W-dw)/2), dy = Math.round((H-dh)/2);
+    hqDraw(ctx, it.img, it.iw, it.ih, dx, dy, dw, dh);
+    // 縮小過的圖才需要補銳利；放大的圖再銳利只會放大雜訊
+    if (s < 1) unsharp(ctx, dx, dy, dw, dh, S.sharpen);
+  }
+
+  function renderThumb(it){
+    if (!it.ok || !it.canvas) return;
+    // 依螢幕像素密度決定預覽解析度，否則在高解析螢幕上預覽會糊
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var cssW = it.canvas.clientWidth || 300;
+    var pw = clamp(Math.round(cssW * dpr), 400, 1000);
+    var ph = Math.max(1, Math.round(pw * S.H / S.W));
+    if (it.canvas.width !== pw || it.canvas.height !== ph){ it.canvas.width = pw; it.canvas.height = ph; }
+    drawItem(it.canvas.getContext('2d'), it, pw, ph);
+  }
+
+  var rafId = null;
+  function renderAll(){
+    if (rafId) return;
+    rafId = requestAnimationFrame(function(){
+      rafId = null;
+      for (var i=0;i<items.length;i++) renderThumb(items[i]);
+    });
+  }
+
+  /* ================= 卡片 ================= */
+  function fmtKB(b){
+    if (b < 1024) return b + ' B';
+    if (b < 1024*1024) return Math.round(b/1024) + ' KB';
+    return (b/1048576).toFixed(1) + ' MB';
+  }
+
+  function buildCard(it){
+    var card = document.createElement('div');
+    card.className = 'card' + (it.ok ? '' : ' bad');
+
+    if (it.ok){
+      var th = document.createElement('div'); th.className='thumb';
+      it.canvas = document.createElement('canvas');
+      th.appendChild(it.canvas);
+      var acts = document.createElement('div'); acts.className='acts';
+      var bRm = document.createElement('button'); bRm.textContent='移除';
+      bRm.onclick = function(){ removeItem(it.id); };
+      acts.appendChild(bRm);
+      th.appendChild(acts);
+      card.appendChild(th);
+    } else {
+      var bad = document.createElement('div'); bad.className='thumb';
+      bad.textContent = '無法讀取這個檔案（HEIC 等格式請先轉成 JPG）';
+      card.appendChild(bad);
+    }
+
+    var meta = document.createElement('div'); meta.className='meta';
+    var nm = document.createElement('div'); nm.className='name'; nm.textContent = it.name;
+    meta.appendChild(nm);
+    var dim = document.createElement('div'); dim.className='dim';
+    dim.textContent = it.ok ? (it.iw + ' × ' + it.ih + ' · ' + fmtKB(it.size)) : fmtKB(it.size);
+    meta.appendChild(dim);
+
+    if (!it.ok){
+      var f2 = document.createElement('span'); f2.className='flag err'; f2.textContent='已跳過';
+      meta.appendChild(f2);
+    } else if (it.iw < S.W && it.ih < S.H){
+      var f = document.createElement('span'); f.className='flag up';
+      f.textContent = S.upscale ? '原圖較小，放大後會變模糊' : '原圖較小，會維持原尺寸置中';
+      meta.appendChild(f);
+    }
+    card.appendChild(meta);
+    return card;
+  }
+
+  function refresh(){
+    var grid = $('grid');
+    grid.textContent = '';
+    for (var i=0;i<items.length;i++) grid.appendChild(buildCard(items[i]));
+    var ok = items.filter(function(x){ return x.ok; }).length;
+    $('empty').style.display = items.length ? 'none' : 'block';
+    $('count').innerHTML = items.length
+      ? '已加入 <b>' + items.length + '</b> 張，可輸出 <b>' + ok + '</b> 張'
+      : '尚未加入圖片';
+    $('btnDl').disabled = ok === 0 || busy;
+    $('btnClear').disabled = items.length === 0;
+    $('btnDl').textContent = ok > 1 ? '下載全部（ZIP）' : '下載';
+    renderAll();
+  }
+
+  function removeItem(id){
+    items = items.filter(function(x){
+      if (x.id === id && x.img && x.img.src.indexOf('blob:') === 0){
+        try { URL.revokeObjectURL(x.img.src); } catch(_){}
+      }
+      return x.id !== id;
+    });
+    refresh();
+  }
+
+  /* ================= 載入檔案 ================= */
+  function addFiles(list){
+    var files = [];
+    for (var i=0;i<list.length;i++){
+      var f = list[i];
+      if (f && (f.type.indexOf('image/') === 0 || /\.(jpe?g|png|webp|gif|bmp|avif)$/i.test(f.name||''))) files.push(f);
+    }
+    if (!files.length){ toast('沒有可用的圖片檔'); return; }
+
+    var pending = files.length;
+    files.forEach(function(f){
+      var it = {
+        id: ++seq, name: f.name || ('未命名-' + seq + '.png'), size: f.size,
+        ok: false, img: null, iw: 0, ih: 0, canvas: null
+      };
+      items.push(it);
+      var url = URL.createObjectURL(f);
+      var img = new Image();
+      img.onload = function(){
+        it.img = img; it.iw = img.naturalWidth; it.ih = img.naturalHeight;
+        it.ok = it.iw > 0 && it.ih > 0;
+        done();
+      };
+      img.onerror = function(){ try { URL.revokeObjectURL(url); } catch(_){} done(); };
+      img.src = url;
+      function done(){ if (--pending === 0) refresh(); }
+    });
+    refresh();
+  }
+
+  /* ================= 輸出 ================= */
+  function renderFull(it){
+    var cv = document.createElement('canvas');
+    cv.width = S.W; cv.height = S.H;
+    drawItem(cv.getContext('2d'), it, S.W, S.H);
+    return cv;
+  }
+
+  function toBlob(cv){
+    return new Promise(function(res){
+      var mime = S.fmt, q = (mime === 'image/png') ? undefined : S.q;
+      cv.toBlob(function(b){
+        if (b) return res(b);
+        cv.toBlob(function(b2){ res(b2); }, 'image/png');
+      }, mime, q);
+    });
+  }
+
+  function extOf(){ return S.fmt === 'image/png' ? 'png' : (S.fmt === 'image/webp' ? 'webp' : 'jpg'); }
+
+  function outName(it, used){
+    var base = (it.name || 'image').replace(/\.[^.]+$/, '');
+    var n = base + S.suffix + '.' + extOf();
+    if (used){
+      var i = 2, stem = base + S.suffix;
+      while (used[n]){ n = stem + '-' + i + '.' + extOf(); i++; }
+      used[n] = true;
+    }
+    return n;
+  }
+
+  /* ================= ZIP（store，不壓縮） ================= */
+  var CRC = (function(){
+    var t = new Uint32Array(256);
+    for (var i=0;i<256;i++){ var c=i; for (var k=0;k<8;k++) c = (c & 1) ? (0xEDB88320 ^ (c>>>1)) : (c>>>1); t[i]=c>>>0; }
+    return t;
+  })();
+  function crc32(u8){
+    var c = 0xFFFFFFFF;
+    for (var i=0;i<u8.length;i++) c = CRC[(c ^ u8[i]) & 0xFF] ^ (c>>>8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  function makeZip(files){
+    var enc = new TextEncoder(), parts = [], central = [], offset = 0;
+    var d = new Date();
+    var tm = ((d.getHours()&31)<<11) | ((d.getMinutes()&63)<<5) | ((Math.floor(d.getSeconds()/2))&31);
+    var dt = (((d.getFullYear()-1980)&127)<<9) | (((d.getMonth()+1)&15)<<5) | (d.getDate()&31);
+    files.forEach(function(f){
+      var nm = enc.encode(f.name), data = f.data, crc = crc32(data);
+      var lh = new Uint8Array(30 + nm.length), v = new DataView(lh.buffer);
+      v.setUint32(0,0x04034b50,true); v.setUint16(4,20,true); v.setUint16(6,0x0800,true);
+      v.setUint16(8,0,true); v.setUint16(10,tm,true); v.setUint16(12,dt,true);
+      v.setUint32(14,crc,true); v.setUint32(18,data.length,true); v.setUint32(22,data.length,true);
+      v.setUint16(26,nm.length,true); v.setUint16(28,0,true);
+      lh.set(nm,30);
+      parts.push(lh, data);
+      var ch = new Uint8Array(46 + nm.length), w = new DataView(ch.buffer);
+      w.setUint32(0,0x02014b50,true); w.setUint16(4,20,true); w.setUint16(6,20,true);
+      w.setUint16(8,0x0800,true); w.setUint16(10,0,true); w.setUint16(12,tm,true); w.setUint16(14,dt,true);
+      w.setUint32(16,crc,true); w.setUint32(20,data.length,true); w.setUint32(24,data.length,true);
+      w.setUint16(28,nm.length,true); w.setUint16(30,0,true); w.setUint16(32,0,true);
+      w.setUint16(34,0,true); w.setUint16(36,0,true); w.setUint32(38,0,true); w.setUint32(42,offset,true);
+      ch.set(nm,46);
+      central.push(ch);
+      offset += lh.length + data.length;
+    });
+    var cdSize = central.reduce(function(a,c){ return a + c.length; }, 0);
+    var end = new Uint8Array(22), e = new DataView(end.buffer);
+    e.setUint32(0,0x06054b50,true); e.setUint16(8,central.length,true); e.setUint16(10,central.length,true);
+    e.setUint32(12,cdSize,true); e.setUint32(16,offset,true);
+    return new Blob(parts.concat(central, [end]), {type:'application/zip'});
+  }
+
+  /* ================= 下載 ================= */
+  function errMsg(e){
+    var c = (e && e.code) || '';
+    if (c === 'declined') return '你取消了存檔';
+    if (c === 'too_large') return '檔案太大，請分批下載';
+    if (c === 'rate_limited') return '上一個存檔還在處理，請稍等幾秒再按';
+    return '存檔失敗（代碼：' + (c || 'unknown') + '）';
+  }
+
+  // 注意：claude.use() 的結果會被平台記住，太早呼叫可能拿到 null 而永遠卡住，
+  // 所以刻意不在載入時先問，只有使用者按下載時才要存檔能力。
+  async function ensureDl(){
+    if (dl) return dl;
+    diag = 'claude.use=' + (window.claude && typeof window.claude.use === 'function' ? '有' : '無');
+    if (window.claude && typeof window.claude.use === 'function'){
+      try {
+        dl = await window.claude.use('downloads');
+        diag += ' / downloads=' + (dl ? '可用' : 'null');
+      } catch(e){
+        dl = null;
+        diag += ' / use錯誤=' + (e && e.message ? e.message : String(e));
+      }
+    }
+    return dl;
+  }
+
+  // 'ok' | 'err' | 'nocap'
+  async function save(filename, data){
+    await ensureDl();
+    if (!dl) return 'nocap';
+    try {
+      await dl.save({filename: filename, data: data});
+      return 'ok';
+    } catch(e){
+      toast(errMsg(e), 4200);
+      return 'err';
+    }
+  }
+
+  async function showFallback(list){
+    var box = $('fbList');
+    box.textContent = '';
+    var used = {};
+    for (var i=0;i<list.length;i++){
+      var blob = await toBlob(renderFull(list[i]));
+      var row = document.createElement('div'); row.className = 'fbrow';
+      var im = document.createElement('img');
+      im.src = URL.createObjectURL(blob);
+      im.alt = list[i].name;
+      var cap = document.createElement('div'); cap.className = 'fbcap';
+      cap.textContent = outName(list[i], used);
+      row.appendChild(im); row.appendChild(cap);
+      box.appendChild(row);
+    }
+    $('fbDiag').textContent = '診斷：' + diag;
+    $('fallback').classList.add('on');
+  }
+
+  async function downloadAll(){
+    var list = items.filter(function(x){ return x.ok; });
+    if (!list.length || busy) return;
+    busy = true; refresh();
+    var btn = $('btnDl'), label = btn.textContent;
+
+    try {
+      if (list.length === 1){
+        btn.textContent = '處理中…';
+        var b = await toBlob(renderFull(list[0]));
+        var r1 = await save(outName(list[0], null), b);
+        if (r1 === 'ok') toast('已下載 1 張');
+        else if (r1 === 'nocap') await showFallback(list);
+      } else {
+        var used = {}, files = [];
+        for (var i=0;i<list.length;i++){
+          btn.textContent = '處理中 ' + (i+1) + '/' + list.length;
+          var blob = await toBlob(renderFull(list[i]));
+          var buf = await blob.arrayBuffer();
+          files.push({name: outName(list[i], used), data: new Uint8Array(buf)});
+          await new Promise(function(r){ setTimeout(r, 0); });
+        }
+        btn.textContent = '打包中…';
+        var zip = makeZip(files);
+        var stamp = new Date().toISOString().slice(0,10);
+        var rz = await save('圖片_' + S.W + 'x' + S.H + '_' + stamp + '.zip', zip);
+        if (rz === 'ok') toast('已下載 ' + files.length + ' 張（ZIP）');
+        else if (rz === 'nocap') await showFallback(list);
+      }
+    } catch(err){
+      toast('處理失敗：' + (err && err.message ? err.message : '未知錯誤'), 3600);
+    } finally {
+      busy = false; btn.textContent = label; refresh();
+    }
+  }
+
+  /* ================= 事件 ================= */
+  var drop = $('drop'), fileIn = $('file');
+  drop.addEventListener('click', function(e){ if (e.target !== fileIn) fileIn.click(); });
+  fileIn.addEventListener('click', function(e){ e.stopPropagation(); });
+  fileIn.addEventListener('change', function(){ addFiles(fileIn.files); fileIn.value=''; });
+
+  ['dragenter','dragover'].forEach(function(ev){
+    window.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('over'); });
+  });
+  ['dragleave','drop'].forEach(function(ev){
+    window.addEventListener(ev, function(e){
+      e.preventDefault();
+      if (ev === 'dragleave' && e.relatedTarget) return;
+      drop.classList.remove('over');
+    });
+  });
+  window.addEventListener('drop', function(e){
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+  });
+  window.addEventListener('paste', function(e){
+    if (e.clipboardData && e.clipboardData.files && e.clipboardData.files.length) addFiles(e.clipboardData.files);
+  });
+
+  function updateChip(){
+    $('chipSize').textContent = S.W + ' × ' + S.H;
+    $('fbSize').textContent = S.W + '×' + S.H;
+  }
+
+  function syncSize(){
+    S.W = clamp(parseInt($('outW').value,10) || 770, 16, 8000);
+    S.H = clamp(parseInt($('outH').value,10) || 470, 16, 8000);
+    updateChip();
+    if (/^_\d+x\d+$/.test(S.suffix) || S.suffix === ''){
+      S.suffix = '_' + S.W + 'x' + S.H;
+      $('suffix').value = S.suffix;
+    }
+    refresh();
+  }
+  $('outW').addEventListener('change', syncSize);
+  $('outH').addEventListener('change', syncSize);
+  $('btnPreset').addEventListener('click', function(){
+    $('outW').value = 770; $('outH').value = 470; syncSize();
+  });
+
+  $('bg').addEventListener('input', function(){ S.bg = this.value; renderAll(); });
+  Array.prototype.forEach.call(document.querySelectorAll('button[data-bg]'), function(b){
+    b.addEventListener('click', function(){
+      S.bg = this.dataset.bg; $('bg').value = S.bg; renderAll();
+    });
+  });
+  $('upscale').addEventListener('change', function(){ S.upscale = this.checked; refresh(); });
+  $('fmt').addEventListener('change', function(){
+    S.fmt = this.value;
+    $('q').disabled = (S.fmt === 'image/png');
+  });
+  $('q').addEventListener('input', function(){ S.q = this.value/100; $('qLab').textContent = this.value; });
+  $('sharpen').addEventListener('input', function(){
+    S.sharpen = this.value/100; $('shLab').textContent = this.value; renderAll();
+  });
+  $('suffix').addEventListener('input', function(){ S.suffix = this.value; });
+
+  $('btnDl').addEventListener('click', downloadAll);
+  $('btnClear').addEventListener('click', function(){ items = []; refresh(); });
+
+  updateChip();
+
+  function closeFallback(){
+    var box = $('fbList');
+    Array.prototype.forEach.call(box.querySelectorAll('img'), function(im){
+      try { URL.revokeObjectURL(im.src); } catch(_){}
+    });
+    box.textContent = '';
+    $('fallback').classList.remove('on');
+  }
+  $('fbClose').addEventListener('click', closeFallback);
+  $('fallback').addEventListener('click', function(e){ if (e.target === this) closeFallback(); });
+  window.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && $('fallback').classList.contains('on')) closeFallback();
+  });
+
+  refresh();
+})();
+</script>
+</body>
+</html>
